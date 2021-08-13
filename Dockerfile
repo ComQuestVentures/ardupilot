@@ -1,26 +1,30 @@
-FROM ubuntu:20.04
+#FROM ubuntu:16.04
+FROM bitnami/minideb:buster
 WORKDIR /ardupilot
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN useradd -U -m ardupilot && \
     usermod -G users ardupilot
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN apt-get update
+
+RUN install_packages \
+    gcc \
+    g++ \
     lsb-release \
     sudo \
-    bash-completion \
-    software-properties-common
+    software-properties-common && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY Tools/environment_install/install-prereqs-ubuntu.sh /ardupilot/Tools/environment_install/
 COPY Tools/completion /ardupilot/Tools/completion/
 
 # Create non root user for pip
 ENV USER=ardupilot
-
-RUN echo "ardupilot ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ardupilot
-RUN chmod 0440 /etc/sudoers.d/ardupilot
-
-RUN chown -R ardupilot:ardupilot /ardupilot
+ADD . /ardupilot
+RUN chown -R ardupilot:ardupilot /ardupilot && \
+    bash -c "Tools/environment_install/install-prereqs-ubuntu.sh -y" && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 USER ardupilot
 
@@ -41,3 +45,7 @@ RUN sudo apt-get clean \
     && sudo rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV CCACHE_MAXSIZE=1G
+ENV PATH /usr/lib/ccache:/ardupilot/Tools:${PATH}
+
+# Dependency for modules/mavlink/pymavlink/
+RUN pip install future

@@ -3,9 +3,24 @@ echo "---------- $0 start ----------"
 set -e
 set -x
 
-if [ $EUID == 0 ]; then
-    echo "Please do not run this script as root; don't sudo it!"
-    exit 1
+OPT="/opt"
+BASE_PKGS="build-essential ccache g++ gawk git make wget"
+PYTHON_PKGS="future lxml pymavlink MAVProxy pexpect"
+PX4_PKGS="python-argparse openocd flex bison libncurses5-dev \
+          autoconf texinfo libftdi-dev zlib1g-dev \
+          zip genromfs python-empy cmake cmake-data"
+# ARM_LINUX_PKGS="g++-arm-linux-gnueabihf pkg-config-arm-linux-gnueabihf"
+ARM_LINUX_PKGS=""
+# python-wxgtk packages are added to SITL_PKGS below
+SITL_PKGS="libtool libxml2-dev libxslt1-dev python-dev python-pip python-setuptools python-matplotlib python-serial python-scipy python-opencv python-numpy python-pyparsing xterm lcov gcovr"
+ASSUME_YES=false
+QUIET=false
+
+MACHINE_TYPE=$(uname -m)
+if [ ${MACHINE_TYPE} == 'x86_64' ]; then
+    PX4_PKGS+=" libc6-i386"
+else
+  echo "no extra pkgs for i386"
 fi
 
 OPT="/opt"
@@ -142,8 +157,8 @@ fi
 function install_arm_none_eabi_toolchain() {
   # GNU Tools for ARM Embedded Processors
   # (see https://launchpad.net/gcc-arm-embedded/)
-  ARM_ROOT="gcc-arm-none-eabi-10-2020-q4-major"
-  ARM_TARBALL="$ARM_ROOT-x86_64-linux.tar.bz2"
+  ARM_ROOT="gcc-arm-none-eabi-6-2017-q2-update"
+  ARM_TARBALL="$ARM_ROOT-linux.tar.bz2"
   ARM_TARBALL_URL="https://firmware.ardupilot.org/Tools/STM32-tools/$ARM_TARBALL"
   if [ ! -d $OPT/$ARM_ROOT ]; then
     (
@@ -220,54 +235,29 @@ if [ -n "$LBTBIN" ]; then
     SITL_PKGS+=" libtool-bin"
 fi
 
-# Install all packages
-$APT_GET install $BASE_PKGS $SITL_PKGS $PX4_PKGS $ARM_LINUX_PKGS $COVERAGE_PKGS
-$PIP install --user -U $PYTHON_PKGS
-
-if [[ -z "${DO_AP_STM_ENV}" ]] && maybe_prompt_user "Install ArduPilot STM32 toolchain [N/y]?" ; then
-    DO_AP_STM_ENV=1
-fi
-
-heading "Removing modemmanager package that could conflict with firmware uploading"
-if package_is_installed "modemmanager"; then
-    $APT_GET remove modemmanager
-fi
-echo "Done!"
-
-CCACHE_PATH=$(which ccache)
-if [[ $DO_AP_STM_ENV -eq 1 ]]; then
-  install_arm_none_eabi_toolchain
-fi
-
-heading "Check if we are inside docker environment..."
-IS_DOCKER=false
-if [[ -f /.dockerenv ]] || grep -Eq '(lxc|docker)' /proc/1/cgroup ; then
-    IS_DOCKER=true
-fi
-echo "Done!"
-
-SHELL_LOGIN=".profile"
-if $IS_DOCKER; then
-    echo "Inside docker, we add the tools path into .bashrc directly"
-    SHELL_LOGIN=".bashrc"
-fi
+# if [ ! -d $OPT/$ARM_ROOT ]; then
+#     (
+#         cd $OPT;
+#         sudo wget $ARM_TARBALL_URL;
+#         sudo tar xjf ${ARM_TARBALL};
+#         sudo rm ${ARM_TARBALL};
+#     )
+# fi
 
 heading "Adding ArduPilot Tools to environment"
 
 SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 ARDUPILOT_ROOT=$(realpath "$SCRIPT_DIR/../../")
 
-if [[ $DO_AP_STM_ENV -eq 1 ]]; then
-exportline="export PATH=$OPT/$ARM_ROOT/bin:\$PATH";
-grep -Fxq "$exportline" ~/$SHELL_LOGIN 2>/dev/null || {
-    if maybe_prompt_user "Add $OPT/$ARM_ROOT/bin to your PATH [N/y]?" ; then
-        echo $exportline >> ~/$SHELL_LOGIN
-        eval $exportline
-    else
-        echo "Skipping adding $OPT/$ARM_ROOT/bin to PATH."
-    fi
-}
-fi
+# exportline="export PATH=$OPT/$ARM_ROOT/bin:\$PATH";
+# grep -Fxq "$exportline" ~/.profile 2>/dev/null || {
+#     if maybe_prompt_user "Add $OPT/$ARM_ROOT/bin to your PATH [N/y]?" ; then
+#         echo $exportline >> ~/.profile
+#         eval $exportline
+#     else
+#         echo "Skipping adding $OPT/$ARM_ROOT/bin to PATH."
+#     fi
+# }
 
 exportline2="export PATH=$ARDUPILOT_ROOT/$ARDUPILOT_TOOLS:\$PATH";
 grep -Fxq "$exportline2" ~/$SHELL_LOGIN 2>/dev/null || {
@@ -279,17 +269,7 @@ grep -Fxq "$exportline2" ~/$SHELL_LOGIN 2>/dev/null || {
     fi
 }
 
-if [[ $SKIP_AP_COMPLETION_ENV -ne 1 ]]; then
-exportline3="source $ARDUPILOT_ROOT/Tools/completion/completion.bash";
-grep -Fxq "$exportline3" ~/$SHELL_LOGIN 2>/dev/null || {
-    if maybe_prompt_user "Add ArduPilot Bash Completion to your bash shell [N/y]?" ; then
-        echo $exportline3 >> ~/.bashrc
-        eval $exportline3
-    else
-        echo "Skipping adding ArduPilot Bash Completion."
-    fi
-}
-fi
+# apt-cache search arm-none-eabi
 
 exportline4="export PATH=/usr/lib/ccache:\$PATH";
 grep -Fxq "$exportline4" ~/$SHELL_LOGIN 2>/dev/null || {
