@@ -78,6 +78,9 @@ private:
     bool expect(const char *str) const;
 
     void drain_control_socket();
+
+    uint64_t last_timestamp_us;
+    bool home_is_set;
 };
 
 /*

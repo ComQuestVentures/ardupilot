@@ -77,7 +77,7 @@ extern const AP_HAL::HAL& hal;
 const AP_Param::GroupInfo AP_Arming::var_info[] = {
 
     // @Param{Plane, Rover}: REQUIRE
-    // @DisplayName: Require Arming Motors 
+    // @DisplayName: Require Arming Motors
     // @Description: Arming disabled until some requirements are met. If 0, there are no requirements (arm immediately).  If 1, require rudder stick or GCS arming before arming motors and sends the minimum throttle PWM value to the throttle channel when disarmed.  If 2, require rudder stick or GCS arming and send 0 PWM to throttle channel when disarmed. See the ARMING_CHECK_* parameters to see what checks are done before arming. Note, if setting this parameter to 0 a reboot is required to arm the plane.  Also note, even with this parameter at 0, if ARMING_CHECK parameter is not also zero the plane may fail to arm throttle at boot due to a pre-arm check failure.
     // @Values: 0:Disabled,1:THR_MIN PWM when disarmed,2:0 PWM when disarmed
     // @User: Advanced
@@ -350,11 +350,11 @@ bool AP_Arming::ins_checks(bool report)
             check_failed(ARMING_CHECK_INS, report, "Accels not healthy");
             return false;
         }
-        if (!ins.accel_calibrated_ok_all()) {
-            check_failed(ARMING_CHECK_INS, report, "3D Accel calibration needed");
-            return false;
-        }
-        
+        // if (!ins.accel_calibrated_ok_all()) {
+        //     check_failed(ARMING_CHECK_INS, report, "3D Accel calibration needed");
+        //     return false;
+        // }
+
         //check if accelerometers have calibrated and require reboot
         if (ins.accel_cal_requires_reboot()) {
             check_failed(ARMING_CHECK_INS, report, "Accels calibrated requires reboot");
@@ -378,7 +378,7 @@ bool AP_Arming::ins_checks(bool report)
             check_failed(ARMING_CHECK_INS, report, "temperature cal running");
             return false;
         }
-        
+
         // check AHRS attitudes are consistent
         char failure_msg[50] = {};
         if (!AP::ahrs().attitudes_consistent(failure_msg, ARRAY_SIZE(failure_msg))) {
@@ -553,7 +553,7 @@ bool AP_Arming::battery_checks(bool report)
     return true;
 }
 
-bool AP_Arming::hardware_safety_check(bool report) 
+bool AP_Arming::hardware_safety_check(bool report)
 {
     if ((checks_to_perform & ARMING_CHECK_ALL) ||
         (checks_to_perform & ARMING_CHECK_SWITCH)) {
@@ -680,6 +680,9 @@ bool AP_Arming::manual_transmitter_checks(bool report)
 
 bool AP_Arming::mission_checks(bool report)
 {
+    // Bypass checks
+    return true;
+
     if (((checks_to_perform & ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_MISSION)) &&
         _required_mission_items) {
         AP_Mission *mission = AP::mission();
@@ -1023,7 +1026,7 @@ bool AP_Arming::camera_checks(bool display_failure)
 
 bool AP_Arming::osd_checks(bool display_failure) const
 {
-#if OSD_PARAM_ENABLED && OSD_ENABLED 
+#if OSD_PARAM_ENABLED && OSD_ENABLED
     if ((checks_to_perform & ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_CAMERA)) {
         const AP_OSD *osd = AP::osd();
         if (osd == nullptr) {
@@ -1239,7 +1242,7 @@ bool AP_Arming::arm_checks(AP_Arming::Method method)
             fence->enable(true);
         }
     }
-    
+
     // note that this will prepare AP_Logger to start logging
     // so should be the last check to be done before arming
 
@@ -1317,7 +1320,7 @@ bool AP_Arming::disarm(const AP_Arming::Method method, bool do_disarm_checks)
     return true;
 }
 
-AP_Arming::Required AP_Arming::arming_required() 
+AP_Arming::Required AP_Arming::arming_required()
 {
     return (AP_Arming::Required)require.get();
 }
