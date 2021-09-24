@@ -183,7 +183,13 @@ void JSBSim::recv_fdm(const struct sitl_input &input)
     do {
         while (sock_fgfdm.recv(&fdm, sizeof(fdm), 0) != sizeof(fdm)) {}
         fdm.ByteSwap();
-    } while (fdm.cur_time == time_now_us);
+    } while (fdm.cur_time == last_timestamp_us);
+
+    // If time has been reset, ignore this fdm
+    if (fdm.cur_time < last_timestamp_us) {
+		last_timestamp_us = fdm.cur_time;
+		return;
+	}
 
     float a_limit = GRAVITY_MSS*16;
     accel_body = Vector3f(constrain_float(fdm.A_X_pilot * FEET_TO_METERS, -a_limit, a_limit),
