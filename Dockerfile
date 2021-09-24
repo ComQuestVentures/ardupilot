@@ -21,10 +21,11 @@ COPY Tools/completion /ardupilot/Tools/completion/
 
 # Create non root user for pip
 ENV USER=ardupilot
-ADD . /ardupilot
-RUN chown -R ardupilot:ardupilot /ardupilot && \
-    bash -c "Tools/environment_install/install-prereqs-ubuntu.sh -y" && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN echo "ardupilot ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ardupilot
+RUN chmod 0440 /etc/sudoers.d/ardupilot
+
+RUN chown -R ardupilot:ardupilot /ardupilot
 
 USER ardupilot
 
@@ -46,6 +47,3 @@ RUN sudo apt-get clean \
 
 ENV CCACHE_MAXSIZE=1G
 ENV PATH /usr/lib/ccache:/ardupilot/Tools:${PATH}
-
-# Dependency for modules/mavlink/pymavlink/
-RUN pip install future
