@@ -218,13 +218,16 @@ void JSBSim::recv_fdm(const struct sitl_input &input)
     update_mag_field_bf();
 
     // RC input from Typhon UDX
-    rcin_chan_count = 8;
-    rcin[0] = (fdm.right_aileron + 1.0f)*0.5f;
-    rcin[1] = (-fdm.elevator + 1.0f)*0.5f;
-    rcin[2] = (fdm.speedbrake + 1.0f)*0.5f;
-    rcin[3] = (fdm.rudder + 1.0f)*0.5f;
-    rcin[4] = (fdm.spoilers + 1.0f)*0.5f;
-    rcin[7] = (fdm.spoilers + 1.0f)*0.5f;
+    rcin_chan_count = 9;
+    rcin[0] = (fdm.right_aileron + 1.0f)*0.5f; // Roll
+    rcin[1] = (-fdm.elevator + 1.0f)*0.5f; // Pitch
+    rcin[2] = (fdm.speedbrake + 1.0f)*0.5f; // Throttle
+    rcin[3] = (fdm.rudder + 1.0f)*0.5f; // Yaw
+    rcin[4] = (fdm.elevator_trim_tab + 1.0f)*0.5f; // Camera pan
+    rcin[5] = (fdm.left_flap + 1.0f)*0.5f; // Camera tilt
+    rcin[6] = (fdm.spoilers + 1.0f)*0.5f; // Aux 1
+    rcin[7] = (fdm.right_flap + 1.0f)*0.5f; // Aux 2
+    rcin[8] = (fdm.left_aileron + 1.0f)*0.5f; // Aux 3
 
     // Sync time
     uint64_t deltat_us = fdm.cur_time - last_timestamp_us;
