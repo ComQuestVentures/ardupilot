@@ -3,12 +3,12 @@
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -76,21 +76,26 @@ const AP_Param::GroupInfo AP_YawController::var_info[] = {
 
 int32_t AP_YawController::get_servo_out(float scaler, bool disable_integrator)
 {
+	if (abs(scaler) < 1e-6f )
+	{
+		return constrain_float(_last_out * 100, -4500, 4500);
+	}
+
 	uint32_t tnow = AP_HAL::millis();
 	uint32_t dt = tnow - _last_t;
 	if (_last_t == 0 || dt > 1000) {
 		dt = 0;
 	}
 	_last_t = tnow;
-	
+
 
     int16_t aspd_min = aparm.airspeed_min;
     if (aspd_min < 1) {
         aspd_min = 1;
     }
-	
+
 	float delta_time = (float) dt / 1000.0f;
-	
+
 	// Calculate yaw rate required to keep up with a constant height coordinated turn
 	float aspeed;
 	float rate_offset;
@@ -108,14 +113,14 @@ int32_t AP_YawController::get_servo_out(float scaler, bool disable_integrator)
 
     // Get body rate vector (radians/sec)
 	float omega_z = _ahrs.get_gyro().z;
-	
+
 	// Get the accln vector (m/s^2)
 	float accel_y = AP::ins().get_accel().y;
 
 	// Subtract the steady turn component of rate from the measured rate
 	// to calculate the rate relative to the turn requirement in degrees/sec
 	float rate_hp_in = ToDeg(omega_z - rate_offset);
-	
+
 	// Apply a high-pass filter to the rate to washout any steady state error
 	// due to bias errors in rate_offset
 	// Use a cut-off frequency of omega = 0.2 rad/sec
@@ -126,7 +131,7 @@ int32_t AP_YawController::get_servo_out(float scaler, bool disable_integrator)
 
 	//Calculate input to integrator
 	float integ_in = - _K_I * (_K_A * accel_y + rate_hp_out);
-	
+
 	// Apply integrator, but clamp input to prevent control saturation and freeze integrator below min FBW speed
 	// Don't integrate if in stabilise mode as the integrator will wind up against the pilots inputs
 	// Don't integrate if _K_D is zero as integrator will keep winding up
@@ -152,20 +157,20 @@ int32_t AP_YawController::get_servo_out(float scaler, bool disable_integrator)
         // yaw damping is disabled, and the integrator is scaled by damping, so return 0
         return 0;
     }
-	
+
     // Scale the integration limit
     float intLimScaled = _imax * 0.01f / (_K_D * scaler * scaler);
 
     // Constrain the integrator state
     _integrator = constrain_float(_integrator, -intLimScaled, intLimScaled);
-	
+
 	// Protect against increases to _K_D during in-flight tuning from creating large control transients
 	// due to stored integrator values
 	if (_K_D > _K_D_last && _K_D > 0) {
 	    _integrator = _K_D_last/_K_D * _integrator;
 	}
 	_K_D_last = _K_D;
-	
+
 	// Calculate demanded rudder deflection, +Ve deflection yaws nose right
 	// Save to last value before application of limiter so that integrator limiting
 	// can detect exceedance next frame
