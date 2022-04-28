@@ -205,7 +205,7 @@ void JSBSim::recv_fdm(const struct sitl_input &input)
 
     location.lat = fdm.latitude * 180.0 / 3.141592653589793; //NOTE: Maintain double precision
     location.lng = fdm.longitude * 180.0 / 3.141592653589793; //NOTE: Maintain double precision
-    location.alt = fdm.agl*100 + home.alt;
+    location.alt = fdm.agl*100;
 
     Quaternion quat(fdm.phi, fdm.theta, fdm.psi, fdm.alpha);
     quat.rotation_matrix(dcm);
