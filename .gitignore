@@ -53,6 +53,7 @@
 .tags
 .tags_sorted_by_file
 .vagrant
+.venv
 Tools/vagrant/*.log
 Rover/test.Rover/
 Rover/way.txt
