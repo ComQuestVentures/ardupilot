@@ -77,6 +77,8 @@ JSON::JSON(const char *frame_str) :
             }
         }
     }
+
+    rcin_chan_count = 12;
 }
 
 /*
@@ -335,6 +337,14 @@ void JSON::recv_fdm(const struct sitl_input &input)
     }
     if ((received_bitmask & WIND_SPD) != 0) {
         wind_vane_apparent.speed = state.wind_vane_apparent.speed;
+    }
+    
+    // update RC input
+    for (uint8_t i=17; i<29; i++) {
+        if ((received_bitmask &  1U << i) == 0) {
+            continue;
+        }
+        rcin[i-17] = (state.rc[i-17] - 1000.0f) / 1000.0f;
     }
 
     double deltat;
