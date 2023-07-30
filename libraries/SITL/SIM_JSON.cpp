@@ -12,7 +12,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-/* 
+/*
     Simulator Connector for JSON based interfaces
 */
 
@@ -337,6 +337,15 @@ void JSON::recv_fdm(const struct sitl_input &input)
         wind_vane_apparent.speed = state.wind_vane_apparent.speed;
     }
 
+    // update RC input
+    rcin_chan_count = 12;
+    for (uint8_t i=0; i<rcin_chan_count; i++) {
+        if ((received_bitmask &  1U << (i+17)) == 0) {
+            continue;
+        }
+        rcin[i] = (state.rc[i] - 1000.0f) / 1000.0f;
+    }
+
     double deltat;
     if (state.timestamp_s < last_timestamp_s) {
         // Physics time has gone backwards, don't reset AP
@@ -350,9 +359,9 @@ void JSON::recv_fdm(const struct sitl_input &input)
 
     if (is_positive(deltat) && deltat < 0.1) {
         // time in us to hz
-        if (use_time_sync) {
-            adjust_frame_time(1.0 / deltat);
-        }
+        //if (use_time_sync) { // SIMNET: Disable
+        //    adjust_frame_time(1.0 / deltat);
+        //}
         // match actual frame rate with desired speedup
         time_advance();
     }
@@ -441,7 +450,7 @@ void JSON::update(const struct sitl_input &input)
     update_mag_field_bf();
 
     // allow for changes in physics step
-    adjust_frame_time(constrain_float(sitl->loop_rate_hz, rate_hz-1, rate_hz+1));
+    //adjust_frame_time(constrain_float(sitl->loop_rate_hz, rate_hz-1, rate_hz+1)); // SIMNET: Disable
 
 #if 0
     // report frame rate
