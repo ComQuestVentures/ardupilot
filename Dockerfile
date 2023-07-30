@@ -40,7 +40,6 @@ RUN echo "if [ -d \"\$HOME/.local/bin\" ] ; then\nPATH=\"\$HOME/.local/bin:\$PAT
 RUN export ARDUPILOT_ENTRYPOINT="/home/${USER_NAME}/ardupilot_entrypoint.sh" \
     && echo "#!/bin/bash" > $ARDUPILOT_ENTRYPOINT \
     && echo "set -e" >> $ARDUPILOT_ENTRYPOINT \
-    && echo "source /home/${USER_NAME}/.ardupilot_env" >> $ARDUPILOT_ENTRYPOINT \
     && echo 'exec "$@"' >> $ARDUPILOT_ENTRYPOINT \
     && chmod +x $ARDUPILOT_ENTRYPOINT \
     && sudo mv $ARDUPILOT_ENTRYPOINT /ardupilot_entrypoint.sh
