@@ -331,10 +331,10 @@ void JSON::recv_fdm(const struct sitl_input &input)
 
     // update wind vane
     if ((received_bitmask & WIND_DIR) != 0) {
-        wind_vane_apparent.direction = state.wind_vane_apparent.direction;
+        wind_vane_apparent.direction = state.bat_volt;
     }
     if ((received_bitmask & WIND_SPD) != 0) {
-        wind_vane_apparent.speed = state.wind_vane_apparent.speed;
+        wind_vane_apparent.speed = state.bat_amp;
     }
 
     // update RC input
@@ -345,6 +345,10 @@ void JSON::recv_fdm(const struct sitl_input &input)
         }
         rcin[i] = (state.rc[i] - 1000.0f) / 1000.0f;
     }
+
+    // update battery state
+    battery_voltage = state.bat_volt;
+    battery_current = state.bat_amp;
 
     double deltat;
     if (state.timestamp_s < last_timestamp_s) {
