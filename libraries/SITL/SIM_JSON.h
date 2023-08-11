@@ -93,6 +93,8 @@ private:
         Vector3f velocity;
         float rng[6];
         float rc[12];
+        float bat_volt;
+        float bat_amp;
         struct {
             float direction;
             float speed;
@@ -108,7 +110,7 @@ private:
         void *ptr;
         enum data_type type;
         bool required;
-    } keytable[29] = {
+    } keytable[31] = {
         { "", "timestamp", &state.timestamp_s, DATA_DOUBLE, true },
         { "imu", "gyro",    &state.imu.gyro, DATA_VECTOR3F, true },
         { "imu", "accel_body", &state.imu.accel_body, DATA_VECTOR3F, true },
@@ -138,6 +140,8 @@ private:
         { "rc", "rc_10", &state.rc[9], DATA_FLOAT, false },
         { "rc", "rc_11", &state.rc[10], DATA_FLOAT, false },
         { "rc", "rc_12", &state.rc[11], DATA_FLOAT, false },
+        { "battery", "voltage", &state.bat_volt, DATA_FLOAT, false },
+        { "battery", "current", &state.bat_amp, DATA_FLOAT, false },
     };
 
     // Enum coresponding to the ordering of keys in the keytable.
@@ -171,6 +175,8 @@ private:
         RC_10       = 1U << 26,
         RC_11       = 1U << 27,
         RC_12       = 1U << 28,
+        BAT_VOLT    = 1U << 29,
+        BAT_AMP     = 1U << 30,
     };
     uint32_t last_received_bitmask;
 };
