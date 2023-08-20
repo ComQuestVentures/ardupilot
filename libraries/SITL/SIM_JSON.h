@@ -92,6 +92,9 @@ private:
         Quaternion quaternion;
         Vector3f velocity;
         float rng[6];
+        float rc[12];
+        float bat_volt;
+        float bat_amp;
         struct {
             float direction;
             float speed;
@@ -107,7 +110,7 @@ private:
         void *ptr;
         enum data_type type;
         bool required;
-    } keytable[17] = {
+    } keytable[31] = {
         { "", "timestamp", &state.timestamp_s, DATA_DOUBLE, true },
         { "imu", "gyro",    &state.imu.gyro, DATA_VECTOR3F, true },
         { "imu", "accel_body", &state.imu.accel_body, DATA_VECTOR3F, true },
@@ -125,6 +128,20 @@ private:
         {"windvane","speed", &state.wind_vane_apparent.speed, DATA_FLOAT, false},
         {"", "airspeed", &state.airspeed, DATA_FLOAT, false},
         {"", "no_time_sync", &state.no_time_sync, BOOLEAN, false},
+        { "rc", "rc_1", &state.rc[0], DATA_FLOAT, false },
+        { "rc", "rc_2", &state.rc[1], DATA_FLOAT, false },
+        { "rc", "rc_3", &state.rc[2], DATA_FLOAT, false },
+        { "rc", "rc_4", &state.rc[3], DATA_FLOAT, false },
+        { "rc", "rc_5", &state.rc[4], DATA_FLOAT, false },
+        { "rc", "rc_6", &state.rc[5], DATA_FLOAT, false },
+        { "rc", "rc_7", &state.rc[6], DATA_FLOAT, false },
+        { "rc", "rc_8", &state.rc[7], DATA_FLOAT, false },
+        { "rc", "rc_9", &state.rc[8], DATA_FLOAT, false },
+        { "rc", "rc_10", &state.rc[9], DATA_FLOAT, false },
+        { "rc", "rc_11", &state.rc[10], DATA_FLOAT, false },
+        { "rc", "rc_12", &state.rc[11], DATA_FLOAT, false },
+        { "battery", "voltage", &state.bat_volt, DATA_FLOAT, false },
+        { "battery", "current", &state.bat_amp, DATA_FLOAT, false },
     };
 
     // Enum coresponding to the ordering of keys in the keytable.
@@ -146,6 +163,20 @@ private:
         WIND_SPD    = 1U << 14,
         AIRSPEED    = 1U << 15,
         TIME_SYNC   = 1U << 16,
+        RC_1        = 1U << 17,
+        RC_2        = 1U << 18,
+        RC_3        = 1U << 19,
+        RC_4        = 1U << 20,
+        RC_5        = 1U << 21,
+        RC_6        = 1U << 22,
+        RC_7        = 1U << 23,
+        RC_8        = 1U << 24,
+        RC_9        = 1U << 25,
+        RC_10       = 1U << 26,
+        RC_11       = 1U << 27,
+        RC_12       = 1U << 28,
+        BAT_VOLT    = 1U << 29,
+        BAT_AMP     = 1U << 30,
     };
     uint32_t last_received_bitmask;
 };
