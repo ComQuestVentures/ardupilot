@@ -318,6 +318,10 @@ void JSON::recv_fdm(const struct sitl_input &input)
         airspeed_pitot = constrain_float(velocity_air_bf * Vector3f(1.0f, 0.0f, 0.0f), 0.0f, 120.0f);
     }
 
+    if ((received_bitmask & WIND_VEL) != 0) {
+        wind_ef = state.velocity_wind;
+    }
+
     // Convert from a meters from origin physics to a lat long alt
     update_position();
 
@@ -331,24 +335,27 @@ void JSON::recv_fdm(const struct sitl_input &input)
 
     // update wind vane
     if ((received_bitmask & WIND_DIR) != 0) {
-        wind_vane_apparent.direction = state.bat_volt;
+        wind_vane_apparent.direction = state.wind_vane_apparent.direction;
     }
     if ((received_bitmask & WIND_SPD) != 0) {
-        wind_vane_apparent.speed = state.bat_amp;
+        wind_vane_apparent.speed = state.wind_vane_apparent.speed;
     }
 
     // update RC input
-    rcin_chan_count = 12;
+    rcin_chan_count = 10;
     for (uint8_t i=0; i<rcin_chan_count; i++) {
-        if ((received_bitmask &  1U << (i+17)) == 0) {
-            continue;
+        if ((received_bitmask &  1U << (i+18)) != 0) {
+            rcin[i] = (state.rc[i] - 1000.0f) / 1000.0f;
         }
-        rcin[i] = (state.rc[i] - 1000.0f) / 1000.0f;
     }
 
     // update battery state
-    battery_voltage = state.bat_volt;
-    battery_current = state.bat_amp;
+    if ((received_bitmask & BAT_VOLT) != 0) {
+        battery_voltage = state.bat_volt; 
+    }
+    if ((received_bitmask & BAT_AMP) != 0) {
+        battery_current = state.bat_amp; 
+    }
 
     double deltat;
     if (state.timestamp_s < last_timestamp_s) {
