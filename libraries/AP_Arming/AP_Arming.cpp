@@ -91,7 +91,7 @@ extern const AP_HAL::HAL& hal;
 const AP_Param::GroupInfo AP_Arming::var_info[] = {
 
     // @Param{Plane, Rover}: REQUIRE
-    // @DisplayName: Require Arming Motors 
+    // @DisplayName: Require Arming Motors
     // @Description: Arming disabled until some requirements are met. If 0, there are no requirements (arm immediately).  If 1, sends the minimum throttle PWM value to the throttle channel when disarmed. If 2, send 0 PWM (no signal) to throttle channel when disarmed. On planes with ICE enabled and the throttle while disarmed option set in ICE_OPTIONS, the motor will always get THR_MIN when disarmed. Arming will occur using either rudder stick arming (if enabled) or GCS command when all mandatory and ARMING_CHECK items are satisfied. Note, when setting this parameter to 0, a reboot is required to immediately arm the plane.
     // @Values: 0:Disabled,1:minimum PWM when disarmed,2:0 PWM when disarmed
     // @User: Advanced
@@ -453,7 +453,7 @@ bool AP_Arming::ins_checks(bool report)
             check_failed(ARMING_CHECK_INS, report, "3D Accel calibration needed");
             return false;
         }
-        
+
         //check if accelerometers have calibrated and require reboot
         if (ins.accel_cal_requires_reboot()) {
             check_failed(ARMING_CHECK_INS, report, "Accels calibrated requires reboot");
@@ -587,7 +587,7 @@ bool AP_Arming::compass_checks(bool report)
                 check_failed(ARMING_CHECK_COMPASS, report, "Check mag field (z diff:%.0f>%d)",
                              (double)fabsf(diff_mgauss.z), (int)magfield_error_threshold*2);
                 return false;
-            }           
+            }
         }
     }
 
@@ -698,7 +698,7 @@ bool AP_Arming::battery_checks(bool report)
     return true;
 }
 
-bool AP_Arming::hardware_safety_check(bool report) 
+bool AP_Arming::hardware_safety_check(bool report)
 {
     if (check_enabled(ARMING_CHECK_SWITCH)) {
 
@@ -1296,7 +1296,7 @@ bool AP_Arming::camera_checks(bool display_failure)
 
 bool AP_Arming::osd_checks(bool display_failure) const
 {
-#if OSD_ENABLED 
+#if OSD_ENABLED
     if (check_enabled(ARMING_CHECK_OSD)) {
         // if no OSD then pass
         const AP_OSD *osd = AP::osd();
@@ -1525,7 +1525,7 @@ bool AP_Arming::estop_checks(bool display_failure)
             // switch is configured and is in estop position, so likely the reason we are estopped, so no prearm failure
             return true;  // no prearm failure
         }
-    }   
+    }
     check_failed(display_failure,"Motors Emergency Stopped");
     return false;
 }
@@ -1649,7 +1649,7 @@ bool AP_Arming::arm(AP_Arming::Method method, const bool do_arming_checks)
     if (armed && do_arming_checks && checks_to_perform == 0) {
         gcs().send_text(MAV_SEVERITY_WARNING, "Warning: Arming Checks Disabled");
     }
-    
+
 #if HAL_GYROFFT_ENABLED
     // make sure the FFT subsystem is enabled if arming checks have been disabled
     AP_GyroFFT *fft = AP::fft();
